@@ -33,6 +33,7 @@
 </template>
 
 <script>
+    import Auth from '@/apis/auth'
   export default {
     name: "Login",
     data () {
@@ -79,7 +80,12 @@
         }
         this.register.isError = false
         this.register.notice = ''
-        console.log('注册用户名，密码',this.register.username,this.register.password)
+        Auth.register({username: this.register.username, password: this.register.password})
+          .then(res=>{
+            console.log(res.data)
+          }).catch(err=>{
+            console.log(err)
+        })
       },
       onLogin () {
         console.log(' on login')
@@ -97,7 +103,12 @@
         }
         this.login.isError = false
         this.login.notice = ''
-        console.log('注册用户名，密码',this.login.username,this.login.password)
+        Auth.login({username: this.login.username, password:this.login.password})
+          .then(res=>{
+            console.log(res.data)
+          }).catch(err=>{
+            console.log(err)
+        })
       },
       validUserName (username) {
         return {

@@ -9,7 +9,9 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const portfinder = require('portfinder')
-
+//线上环境和本地环境切换
+require('./mock.config').config({isDev: true})
+//
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
 
