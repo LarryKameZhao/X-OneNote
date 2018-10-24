@@ -39,8 +39,8 @@
     data () {
       return {
         msg: '这是登陆页面',
-        isShowLogin: false,
-        isShowRegister: true,
+        isShowLogin: true,
+        isShowRegister: false,
         login: {
           username:'',
           password:'',
@@ -82,8 +82,13 @@
         this.register.notice = ''
         Auth.register({username: this.register.username, password: this.register.password})
           .then(res=>{
+            this.register.isError = false
+            this.register.notice = ''
+            this.$router.push({path:'/notebooks'})
             console.log(res.data)
           }).catch(err=>{
+            this.register.isError = true
+            this.register.notice = err.data
             console.log(err)
         })
       },
@@ -101,12 +106,15 @@
           this.login.notice = result2.notice
           return
         }
-        this.login.isError = false
-        this.login.notice = ''
         Auth.login({username: this.login.username, password:this.login.password})
           .then(res=>{
+            this.login.isError = false
+            this.login.notice = ''
+            this.$router.push({path:'/notebooks'})
             console.log(res.data)
           }).catch(err=>{
+            this.login.isError = true
+            this.login.notice = err.data
             console.log(err)
         })
       },

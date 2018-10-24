@@ -24,6 +24,7 @@
       logout () {
         Auth.logout()
           .then(res=>{
+            this.$router.push({path:'login'})
             console.log(res.data)
           }).catch(err=>{
             console.log(err)
