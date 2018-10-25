@@ -1,5 +1,8 @@
 <template>
-<div>helloworld</div>
+<div>
+    <h2>hello test</h2>
+
+</div>
 </template>
 
 <script>
@@ -9,6 +12,10 @@ export default {
     return {
       msg: 'Welcome to Your Vue.js App'
     }
+  },
+  methods: {
+
+
   }
 }
 </script>
@@ -29,4 +36,5 @@ li {
 a {
   color: #42b983;
 }
+
 </style>
