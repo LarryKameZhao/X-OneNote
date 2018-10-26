@@ -1,5 +1,7 @@
 <template>
-<div>trash</div>
+<div>
+    <h1>trash:{{ $route.query.notebookId }}</h1>
+</div>
 </template>
 
 <script>
