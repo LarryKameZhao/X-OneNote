@@ -12,7 +12,7 @@
                             <span class="iconfont icon-notebook"></span>{{notebook.title}}
                             <span>{{notebook.noteCounts}}</span><span class="action" @click.stop.prevent="onEdit(notebook)">编辑</span>
                             <span class="action" @click.stop.prevent="onDelete(notebook)">删除</span>
-                            <span class="date">{{notebook.friendlycreatedAt}}</span>
+                            <span class="date">{{notebook.createdAtFriendly}}</span>
                         </div>
                     </router-link>
                 </div>
@@ -22,32 +22,30 @@
 </template>
 
 <script>
-    import Auth from '@/apis/auth'
-    import NoteBooks from '@/apis/notebook'
-    // import notebook from "../apis/notebook";
-    import {friendlyDate} from "../helpers/util"
+  import Auth from '@/apis/auth'
+    import { mapState, mapActions, mapGetters } from "vuex"
   export default {
     data () {
       return {
         msg: '笔记本列表',
-        notebooks: []
+        // notebooks: []
       }
     },
+    computed: {
+      ...mapGetters(['notebooks'])
+    },
     created () {
-      Auth.getInfo()
-        .then(res => {
-          if(!res.isLogin) {
-            this.$router.push({ path: 'login'})
-          }
-        })
-      NoteBooks.getAll()
-        .then(res=>{
-            this.notebooks = res.data
-        }).catch(err=>{
-          console.log(err)
-      })
+      this.checkLogin({path: '/login'})
+      this.getNotebooks()
     },
     methods: {
+      ...mapActions([
+        'getNotebooks',
+        'addNotebook',
+        'updateNotebook',
+        'deleteNotebook',
+        'checkLogin'
+      ]),
       onCreate () {
         this.$prompt('请输入新笔记标题', '创建笔记本', {
           confirmButtonText: '确定',
@@ -55,15 +53,9 @@
           inputPattern: /^.{1,30}$/,
           inputErrorMessage: '笔记本标题不能为空，且不超30个字'
         }).then(({ value }) => {
-          return  NoteBooks.addNoteBook({ title: value})
-        }).then(res=>{
-          res.data.friendlycreatedAt = friendlyDate(res.data.createdAt)
-          this.notebooks.unshift(res.data)
-          this.$message({
-            type: 'success',
-            message: res.msg
-          });
-        }).catch(()=>{})
+          console.log('sucess addnote:',value)
+          this.addNotebook({title: value})
+        }).catch(err=>{})
 
       },
       onEdit (notebook) {
@@ -76,15 +68,8 @@
           inputErrorMessage: '笔记本标题不能为空，且不超30个字'
         }).then(({ value }) => {
           notebookTitle = value
-          return  NoteBooks.updateNotebook(notebook.id,{ title: value })
-        }).then(res=>{
-          notebook.title = notebookTitle
-          this.$message({
-            type: 'success',
-            message: res.msg
-          })
-        }).catch(()=>{})
-
+          this.updateNotebook({notebookId: notebook.id, title: notebookTitle})
+        }).catch(err=>{})
       },
       onDelete (notebook) {
         this.$confirm('确定要删除笔记本?', '删除笔记本', {
@@ -92,14 +77,8 @@
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          return NoteBooks.deleteNotebook(notebook.id)
-        }).then(()=>{
-          this.$message({
-            type: 'success',
-            message: '删除成功!'
-          });
-          this.notebooks.splice(this.notebooks.indexOf(notebook), 1)
-      }).catch(()=>{})
+          this.deleteNotebook({notebookId:notebook.id})
+        }).catch(()=>{})
       }
     }
   }

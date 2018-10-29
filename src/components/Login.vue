@@ -33,9 +33,9 @@
 </template>
 
 <script>
-    import Auth from '@/apis/auth'
-    import Bus from '@/helpers/bus'
-  export default {
+
+    import {  mapActions, mapGetters } from 'vuex'
+    export default {
     name: "Login",
     data () {
       return {
@@ -57,6 +57,10 @@
       }
     },
     methods: {
+      ...mapActions({
+        loginUser: 'login',
+        registerUser: 'register'
+      }),
       showRegister () {
         this.isShowRegister = true
         this.isShowLogin = false
@@ -81,17 +85,15 @@
         }
         this.register.isError = false
         this.register.notice = ''
-        Auth.register({username: this.register.username, password: this.register.password})
+        this.registerUser({username: this.register.username, password: this.register.password})
           .then(res=>{
             this.register.isError = false
             this.register.notice = ''
-            Bus.$emit('userInfo',{username:this.login.username})
             this.$router.push({path:'/notebooks'})
             console.log(res.data)
           }).catch(err=>{
             this.register.isError = true
             this.register.notice = err.data
-            console.log(err)
         })
       },
       onLogin () {
@@ -108,17 +110,15 @@
           this.login.notice = result2.notice
           return
         }
-        Auth.login({username: this.login.username, password:this.login.password})
+        this.loginUser({username: this.login.username, password:this.login.password})
           .then(res=>{
             this.login.isError = false
             this.login.notice = ''
-            Bus.$emit('userInfo',{username:this.login.username})
             this.$router.push({path:'/notebooks'})
             console.log(res.data)
           }).catch(err=>{
             this.login.isError = true
             this.login.notice = err.data
-            console.log(err)
         })
       },
       validUserName (username) {

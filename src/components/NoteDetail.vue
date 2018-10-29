@@ -1,53 +1,102 @@
 <template>
-        <div id="note" class="detail">
-            <note-sidebar ></note-sidebar>
-            <div class="note-detail">
+    <div id="note" class="detail">
+        <note-sidebar  @update:notes="val => notes = val"></note-sidebar>
+        <div class="note-detail">
+            <div class="note-empty" v-show="!curNote.id">请选择笔记</div>
+            <div class="note-detail-ct" v-show="curNote.id">
                 <div class="note-bar">
-                    <span>创建日期：{{curNote.createdAtFriendly}}</span>
-                    <span>更新日期：{{curNote.updatedAtFriendly}}</span>
-                    <span>{{ curNote.statusText }}</span>
-                    <span class="iconfont icon-delete"></span>
-                    <span class="iconfont icon-fullscreen"></span>
+                    <span> 创建日期: {{curNote.createdAtFriendly}}</span>
+                    <span> 更新日期: {{curNote.updatedAtFriendly}}</span>
+                    <span> {{statusText}}</span>
+                    <span class="iconfont icon-delete" @click="onDeleteNote"></span>
+                    <span class="iconfont icon-fullscreen" @click="isShowPreview = !isShowPreview"></span>
                 </div>
                 <div class="note-title">
-                    <input type="text" :value="curNote.title" placeholder="输入标题">
+                    <input type="text" @input="onUpdateNote" @keydown="statusText='正在输入...'" v-model:value="curNote.title"  placeholder="输入标题">
                 </div>
                 <div class="editor">
-                    <textarea name="" v-show="true" id="" :value="curNote.content" cols="30" rows="10" placeholder="输入markdown"></textarea>
-                    <div class="preview markdown-body" vhtml="" v-show="false"></div>
+                    <textarea v-show="!isShowPreview" @keydown="statusText='正在输入...'" @input="onUpdateNote"  v-model:value="curNote.content"  placeholder="输入内容, 支持 markdown 语法"></textarea>
+                    <div class="preview markdown-body" v-html="previewContent" v-show="isShowPreview">
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 </template>
 
 <script>
-    import Auth from '@/apis/auth'
-    import NoteSidebar from '@/components/NoteSidebar'
+  import NoteSidebar from '@/components/NoteSidebar'
+  import _ from 'lodash'
+  import MarkdownIt from 'markdown-it'
+  import { mapState, mapGetters, mapMutations, mapActions } from 'vuex'
+
+
+  let md = new MarkdownIt()
+
+
   export default {
-      components: {
-        NoteSidebar
-      },
+    components: {
+      NoteSidebar
+    },
+
     data () {
       return {
-        msg: '笔记详情页',
-        curNote: {
-          title: '笔记标题',
-          content: '我的内容',
-          createdAtFriendly:'1天前',
-          updatedAtFriendly:'刚刚',
-          statusText: '未更新'
-        }
+        statusText: '笔记未改动',
+        isShowPreview: false
       }
     },
-    created () {
-      Auth.getInfo()
-        .then( res => {
-          if(!res.isLogin) {
-            this.$router.push({path:'login'})
-          }
+
+    created() {
+      this.checkLogin({ path: '/login' })
+    },
+
+    computed: {
+      ...mapGetters([
+        'notes',
+        'curNote'
+      ]),
+
+      previewContent() {
+        return md.render(this.curNote.content||'')
+      }
+    },
+
+    methods: {
+      ...mapMutations([
+        'setCurNote'
+      ]),
+
+      ...mapActions([
+        'updateNote',
+        'deleteNote',
+        'checkLogin'
+      ]),
+
+      onUpdateNote: _.debounce(function() {
+        this.updateNote({ noteId: this.curNote.id, title: this.curNote.title, content: this.curNote.content })
+          .then(data => {
+            this.statusText = '已保存'
+          }).catch(data => {
+          this.statusText = '保存出错'
         })
+
+      }, 300),
+
+      onDeleteNote() {
+        this.deleteNote({ noteId: this.curNote.id })
+          .then(data => {
+            this.$router.replace({ path: '/note' })
+          })
+      }
+
+    },
+
+    beforeRouteUpdate (to, from, next) {
+      this.setCurNote({ curNoteId: to.query.noteId})
+      next()
     }
   }
+
 </script>
 
 <style lang="less" scoped>
@@ -83,14 +132,14 @@
                 clear: both;
             }
             span {
-                font-size: 12px;
+                font-size: 14px;
                 color: #999;
                 margin-right: 4px;
             }
             .iconfont{
                 float: right;
                 margin-left: 4px;
-                font-size: 18px;
+                font-size: 16px;
                 cursor: pointer;
             }
 
