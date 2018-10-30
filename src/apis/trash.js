@@ -13,8 +13,8 @@ export default {
         .then(res => {
           res.data = res.data.sort((note1, note2) => note1.createdAt < note2.createdAt)
           res.data.forEach(note => {
-            res.data.friendlyCreatedAt = friendlyDate(note.createdAt)
-            res.data.friendlyUpdatedAt = friendlyDate(note.updatedAt)
+            note.createdAtFriendly = friendlyDate(note.createdAt)
+            note.updatedAtFriendly = friendlyDate(note.updatedAt)
           })
           resolve(res)
         }).catch(err => {
@@ -22,10 +22,10 @@ export default {
       })
     })
   },
-  deleteNote (noteId) {
-    return request(URL.DELETE.replace(':noteId', noteId),'DELETE')
+  deleteNote({ noteId }) {
+    return request(URL.DELETE.replace(':noteId', noteId), 'DELETE')
   },
-  revertNote (noteId) {
-    return request(URL.DELETE.replace(':noteId', noteId),'PATCH')
+  revertNote({ noteId }) {
+    return request(URL.REVERT.replace(':noteId', noteId), 'PATCH')
   }
 }

@@ -1,7 +1,7 @@
 <template>
     <div class="detail" id="notebook-list">
         <header>
-            <a href="#" class="btn" @click.stop.prevent="onCreate"><i class="iconfont icon-plus">新建笔记本</i></a>
+            <a href="#" class="btn" @click.prevent="onCreate"><i class="iconfont icon-plus">新建笔记本</i></a>
         </header>
         <main>
             <div class="layout">
@@ -27,8 +27,6 @@
   export default {
     data () {
       return {
-        msg: '笔记本列表',
-        // notebooks: []
       }
     },
     computed: {
@@ -36,6 +34,9 @@
     },
     created () {
       this.checkLogin({path: '/login'})
+      this.getNotebooks()
+    },
+    updated () {
       this.getNotebooks()
     },
     methods: {

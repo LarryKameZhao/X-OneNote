@@ -37,82 +37,118 @@
 </template>
 
 <script>
-    import MarkdownIt from 'markdown-it'
-    import Auth from '@/apis/auth'
-    let md = new MarkdownIt()
+
+  import MarkdownIt from 'markdown-it'
+  import { mapGetters, mapMutations, mapActions } from 'vuex'
+
+  let md = new MarkdownIt()
+
   export default {
     data () {
-      return {
-        msg: '回收站',
-        curTrashNote: {
-          id: 3,
-          title: '我的笔记3',
-          content: '等待删除的内容3',
-          createdAtFriendly: '1小时前',
-          updatedAtFriendly: '刚刚'
-        },
-        belongTo: '我的笔记本',
-        trashNotes: [
-          {
-            id: 4,
-            title: '我的笔记1',
-            content: '等待删除的内容1',
-            createdAtFriendly: '1小时前',
-            updatedAtFriendly: '刚刚'
-          },
-          {
-            id: 5,
-            title: '我的笔记2',
-            content: '等待删除的内容2',
-            createdAtFriendly: '1小时前',
-            updatedAtFriendly: '刚刚'
-          }
-        ]
-      }
+      return {}
     },
-    created () {
-      Auth.getInfo()
-        .then(res=> {
-          if (!res.isLogin) {
-            this.$router.push({path:'login'})
-          }
+
+    created() {
+      this.checkLogin({ path: '/login' })
+      this.getNotebooks()
+      this.getTrashNotes()
+        .then(() => {
+          this.setCurTrashNote({ curTrashNoteId: this.$route.query.noteId })
+          this.$router.replace({
+            path:'/trash',
+            query: {
+              'noteId': this.curTrashNote.id
+            }
+          })
         })
     },
-    methods: {
-      onDelete () {
-        console.log('delete')
-      },
-      onRevert () {
-        console.log('revert')
+
+    computed: {
+      ...mapGetters([
+        'trashNotes',
+        'curTrashNote',
+        'belongTo'
+      ]),
+
+      compiledMarkdown () {
+        return md.render(this.curTrashNote.content||'')
       }
     },
-    computed: {
-      compiledMarkdown () {
-        return md.render(this.curTrashNote.content || '')
+
+    methods: {
+      ...mapMutations([
+        'setCurTrashNote'
+      ]),
+
+      ...mapActions([
+        'checkLogin',
+        'deleteTrashNote',
+        'revertTrashNote',
+        'getTrashNotes',
+        'getNotebooks'
+      ]),
+
+      onDelete() {
+        // console.log({ noteId: this.curTrashNote.id })
+        // this.deleteTrashNote({ noteId: this.curTrashNote.id })
+        this.$confirm('删除后将无法恢复', '确定删除？', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          return this.deleteTrashNote({ noteId: this.curTrashNote.id })
+        }).then(() => {
+          console.log('delete success')
+          this.setCurTrashNote()
+          this.$router.replace({
+            path: '/trash',
+            query: { noteId: this.curTrashNote.id }
+          })
+        })
+      },
+
+      onRevert() {
+        this.revertTrashNote({ noteId: this.curTrashNote.id })
+          .then(()=>{
+            this.setCurTrashNote()
+            this.$router.replace({
+              path: '/trash',
+              query: {
+                noteId: this.curTrashNote.id
+              }
+            })
+          })
       }
+
+    },
+
+    beforeRouteUpdate (to, from, next) {
+      this.setCurTrashNote({ curTrashNoteId: to.query.noteId})
+      next()
     }
 
   }
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
     @import url(../assets/css/note-sidebar.less);
     @import url(../assets/css/note-detail.less);
-    #trash
-    {
+
+    #trash {
         display: flex;
         align-items: stretch;
         background-color: #fff;
         flex: 1;
 
-    .note-bar {
-    .action {
-        float: right;
-        margin-left: 10px;
-        padding: 2px 4px;
-        font-size: 12px;
+        .note-bar {
+            .action {
+                float: right;
+                margin-left: 10px;
+                padding: 2px 4px;
+                font-size: 12px;
 
             }
         }
     }
+
 </style>

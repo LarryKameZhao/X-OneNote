@@ -73,6 +73,7 @@
       ]),
 
       onUpdateNote: _.debounce(function() {
+        if (!this.curNote.id ) return
         this.updateNote({ noteId: this.curNote.id, title: this.curNote.title, content: this.curNote.content })
           .then(data => {
             this.statusText = '已保存'
@@ -80,7 +81,7 @@
           this.statusText = '保存出错'
         })
 
-      }, 300),
+      }, 3000),
 
       onDeleteNote() {
         this.deleteNote({ noteId: this.curNote.id })
